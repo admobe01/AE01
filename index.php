@@ -1,16 +1,9 @@
 <?php
 session_start();
 
-/*
-  Mastermind numérico
-  - Genera un número secreto de 3 cifras distintas.
-  - El jugador tiene 10 intentos.
-*/
-
 $NUM_DIGITS = 3;
-$MAX_ATTEMPTS = 10;
+$MAX_ATTEMPTS = 2;
 
-// Inicializar o reiniciar el juego
 if (!isset($_SESSION['secret']) || isset($_GET['reset'])) {
     $digits = range(0, 9);
     shuffle($digits);
@@ -26,9 +19,9 @@ $finished = $_SESSION['finished'];
 $won = $_SESSION['won'];
 $message = "";
 
-// Procesar intento si el juego no ha terminado
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$finished) {
     $guess = preg_replace('/\D/', '', $_POST['guess'] ?? '');
+
     if (strlen($guess) != $NUM_DIGITS) {
         $message = "Debes escribir exactamente $NUM_DIGITS cifras.";
     } elseif (strlen(count_chars($guess, 3)) != $NUM_DIGITS) {
@@ -36,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$finished) {
     } else {
         $exact = 0;
         $partial = 0;
+
         for ($i = 0; $i < $NUM_DIGITS; $i++) {
             if ($guess[$i] === $secret[$i]) {
                 $exact++;
@@ -43,18 +37,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$finished) {
                 $partial++;
             }
         }
+
         $_SESSION['attempts'][] = [
-            'guess' => $guess,
-            'exact' => $exact,
-            'partial' => $partial
+                'guess' => $guess,
+                'exact' => $exact,
+                'partial' => $partial
         ];
 
-        // Verificar si ganó o perdió
         if ($exact == $NUM_DIGITS) {
             $_SESSION['finished'] = true;
             $_SESSION['won'] = true;
         } elseif (count($_SESSION['attempts']) >= $MAX_ATTEMPTS) {
             $_SESSION['finished'] = true;
+            $_SESSION['won'] = false;
+
+        }
+
+        if ($_SESSION['finished'] === true) {
+            header("Location: resultado.php");
+            exit;
         }
 
         header("Location: index.php");
@@ -64,6 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$finished) {
 
 $remaining = $MAX_ATTEMPTS - count($_SESSION['attempts']);
 ?>
+
 <!doctype html>
 <html lang="es">
 <head>
@@ -74,6 +76,7 @@ $remaining = $MAX_ATTEMPTS - count($_SESSION['attempts']);
 
 <div class="container">
     <h2>Mastermind Numérico</h2>
+
     <p>Adivina el número de <?= $NUM_DIGITS ?> cifras distintas.<br>
         Tienes <?= $MAX_ATTEMPTS ?> intentos.</p>
 
@@ -82,26 +85,28 @@ $remaining = $MAX_ATTEMPTS - count($_SESSION['attempts']);
             <input type="text" name="guess" maxlength="<?= $NUM_DIGITS ?>" required autofocus placeholder="Ej: 123">
             <button type="submit">Intentar</button>
         </form>
-        <?php if ($message): ?><p class="message"><?= htmlspecialchars($message) ?></p><?php endif; ?>
+
+        <?php if ($message): ?>
+            <p class="message"><?= htmlspecialchars($message) ?></p>
+        <?php endif; ?>
+
         <p>Intentos restantes: <?= $remaining ?></p>
-    <?php else: ?>
-        <div class="result">
-            <?php if ($won): ?>
-                <h3>¡Correcto! El número era <?= htmlspecialchars($secret) ?>.</h3>
-            <?php else: ?>
-                <h3>¡Has perdido! El número era <?= htmlspecialchars($secret) ?>.</h3>
-            <?php endif; ?>
-            <p><a href="?reset=1"><button>Jugar otra vez</button></a></p>
-        </div>
     <?php endif; ?>
 
     <?php if ($attempts): ?>
         <h3>Intentos anteriores</h3>
+
         <table>
-            <tr><th>#</th><th>Intento</th><th>Exactos</th><th>Parciales</th></tr>
+            <tr>
+                <th>#</th>
+                <th>Intento</th>
+                <th>Exactos</th>
+                <th>Parciales</th>
+            </tr>
+
             <?php foreach ($attempts as $i => $a): ?>
                 <tr>
-                    <td><?= $i+1 ?></td>
+                    <td><?= $i + 1 ?></td>
                     <td><?= htmlspecialchars($a['guess']) ?></td>
                     <td><?= $a['exact'] ?></td>
                     <td><?= $a['partial'] ?></td>
