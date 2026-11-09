@@ -2,7 +2,7 @@
 session_start();
 
 $NUM_DIGITS = 3;
-$MAX_ATTEMPTS = 2;
+$MAX_ATTEMPTS = 10;
 
 if (!isset($_SESSION['secret']) || isset($_GET['reset'])) {
     $digits = range(0, 9);
