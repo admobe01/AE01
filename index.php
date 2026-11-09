@@ -75,7 +75,7 @@ $remaining = $MAX_ATTEMPTS - count($_SESSION['attempts']);
 <body>
 
 <div class="container">
-    <h2>Mastermind Numérico</h2>
+    <h2 style="background-color: red">Mastermind Numérico</h2>
 
     <p>Adivina el número de <?= $NUM_DIGITS ?> cifras distintas.<br>
         Tienes <?= $MAX_ATTEMPTS ?> intentos.</p>
